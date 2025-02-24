@@ -1,0 +1,7 @@
+/vendor
+/node_modules
+.env
+composer.lock
+.idea
+.DS_Store
+/storage

@@ -1,0 +1,16 @@
+{
+    "name": "moistcake/db-backup",
+    "description": "Laravel database auto backup to Google Drive",
+    "type": "library",
+    "require": {
+        "spatie/db-dumper": "^3.8",
+        "google/apiclient": "^2.18"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Moistcake\\DbBackup\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
