@@ -67,7 +67,12 @@ class GoogleDriveHelper
         }
 
         $file = new DriveFile($fileMetadata);
+
+        if (!is_readable($filePath)) {
+            throw new \Exception("File {$filePath} is not readable.");
+        }
         $content = file_get_contents($filePath);
+
 
         $uploadedFile = $service->files->create($file, [
             'data' => $content,

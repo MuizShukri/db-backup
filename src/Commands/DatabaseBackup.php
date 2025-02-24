@@ -40,6 +40,12 @@ class DatabaseBackup extends Command
 
             $this->info("Database backup successful: {$fileName}");
 
+            $this->info("Checking file existence at: {$filePath}");
+            
+            if (!file_exists($filePath)) {
+                $this->error("Backup file not found at {$filePath}");
+            }
+
             $fileUrl = GoogleDriveHelper::uploadFile($filePath, $fileName, $folderId);
             $this->info("Data stored at Google Drive: {$fileUrl}");
         } catch (\Exception $e) {
