@@ -56,40 +56,36 @@ class GoogleDriveHelper
 
     public static function uploadFile($filePath, $fileName, $folderId = null)
     {
-        
         $client = self::client();
         $service = new Drive($client);
-
+    
         $fileMetadata = ['name' => $fileName];
-
         if ($folderId) {
             $fileMetadata['parents'] = [$folderId];
         }
-
+    
         $file = new DriveFile($fileMetadata);
-
-        if (!is_readable($filePath)) {
-            throw new \Exception("File {$filePath} is not readable.");
-        }
-        $content = file_get_contents($filePath);
-
-
-        $uploadedFile = $service->files->create($file, [
-            'data' => $content,
-            'mimeType' => mime_content_type($filePath),
-            'uploadType' => 'multipart',
-            'fields' => 'id',
-            'supportsAllDrives' => true
-        ]);
-
-        // $permission = new Permission([
-        //     'type' => 'anyone', // Or 'user' for specific emails
-        //     'role' => 'reader'  // 'reader' (view only), 'writer' (edit), or 'owner' (transfer ownership)
-        //     // 'emailAddress' => 'example@gmail.com'
-        // ]);
-        
-        // $service->permissions->create($uploadedFile->id, $permission, ['fields' => 'id']);
-
-        return "https://drive.google.com/file/d/{$uploadedFile->id}/view";
+    
+        $chunkSizeBytes = 262144;
+        $client->setDefer(true);
+        $request = $service->files->create($file, ['fields' => 'id', 'supportsAllDrives' => true]);
+    
+        $media = new \Google\Http\MediaFileUpload(
+            $client,
+            $request,
+            mime_content_type($filePath),
+            null,
+            true,
+            $chunkSizeBytes
+        );
+        $media->setFileSize(filesize($filePath));
+    
+        $handle = fopen($filePath, "rb");
+        while (!$media->nextChunk($handle));
+        fclose($handle);
+        $client->setDefer(false);
+    
+        return "https://drive.google.com/file/d/{$media->getMediaFile()->id}/view";
     }
+    
 }
