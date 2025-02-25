@@ -18,13 +18,13 @@ This package provides an automated solution for backing up your Laravel applicat
 To install the package, use Composer:
 
 ```bash
-composer require muizshukri/db-backup
+composer require moistcake/db-backup
 ```
 
 After installation, publish the configuration file:
 
 ```bash
-php artisan vendor:publish --provider="MuizShukri\DbBackup\DbBackupServiceProvider"
+php artisan vendor:publish --provider="moistcake\db-backup\src\DbBackupServiceProvider"
 ```
 
 This command will create a db-backup.php configuration file in your config directory.
