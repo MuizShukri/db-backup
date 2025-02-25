@@ -58,34 +58,38 @@ class GoogleDriveHelper
     {
         $client = self::client();
         $service = new Drive($client);
-    
+
         $fileMetadata = ['name' => $fileName];
+
         if ($folderId) {
             $fileMetadata['parents'] = [$folderId];
         }
-    
+
         $file = new DriveFile($fileMetadata);
-    
-        $chunkSizeBytes = 262144;
-        $client->setDefer(true);
-        $request = $service->files->create($file, ['fields' => 'id', 'supportsAllDrives' => true]);
-    
-        $media = new \Google\Http\MediaFileUpload(
+
+        $stream = Utils::streamFor(fopen($filePath, 'r'));
+
+        $request = new Request('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable');
+        
+        $media = new MediaFileUpload(
             $client,
             $request,
             mime_content_type($filePath),
             null,
             true,
-            $chunkSizeBytes
+            $stream->getSize()
         );
-        $media->setFileSize(filesize($filePath));
-    
-        $handle = fopen($filePath, "rb");
-        while (!$media->nextChunk($handle));
-        fclose($handle);
-        $client->setDefer(false);
-    
-        return "https://drive.google.com/file/d/{$media->getMediaFile()->id}/view";
+        
+        $media->setFileSize($stream->getSize());
+
+        $uploadedFile = $service->files->create($file, [
+            'data' => $stream,
+            'mimeType' => mime_content_type($filePath),
+            'uploadType' => 'resumable',
+            'fields' => 'id',
+            'supportsAllDrives' => true
+        ]);
+
+        return "https://drive.google.com/file/d/{$uploadedFile->id}/view";
     }
-    
 }
