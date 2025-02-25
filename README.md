@@ -35,10 +35,8 @@ This command will create a db-backup.php configuration file in your config direc
 1. Google Drive Setup: Obtain your Google Drive API credentials and add them to your .env file:
 
 ```env
-GOOGLE_DRIVE_CLIENT_ID=your-client-id
-GOOGLE_DRIVE_CLIENT_SECRET=your-client-secret
-GOOGLE_DRIVE_REFRESH_TOKEN=your-refresh-token
-GOOGLE_DRIVE_FOLDER_ID=your-folder-id
+GOOGLE_DRIVE_CREDENTIALS=google-service-acount-key-path
+GOOGLE_DRIVE_FOLDER_ID=google-drive-folder-id
 ```
 
 2. Database Backup Settings: In the config/db-backup.php file, configure the following options:
@@ -53,7 +51,7 @@ GOOGLE_DRIVE_FOLDER_ID=your-folder-id
 Once configured, the package will handle automatic backups based on your settings. However, you can also initiate a manual backup using the Artisan command:
 
 ```bash
-php artisan db-backup:run
+php artisan db:backup
 ```
 
 This command will create a backup of your specified databases and upload them to your configured Google Drive folder.
@@ -65,7 +63,7 @@ This command will create a backup of your specified databases and upload them to
 To automate the backup process, add the following entry to your application's App\Console\Kernel class:
 
 ```php
-$schedule->command('db-backup:run')->dailyAt('02:00');
+$schedule->command('db:backup')->dailyAt('02:00');
 ```
 
 Adjust the dailyAt time to your preferred backup time.
