@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class DatabaseBackup extends Command
 {
-    protected $signature = 'db:backup';
+    protected $signature = 'moistcake:db-backup';
     protected $description = 'Backup database to Google Drive';
 
     public function handle()
