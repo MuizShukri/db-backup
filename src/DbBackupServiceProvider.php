@@ -5,8 +5,14 @@ namespace Moistcake\DbBackup;
 use Illuminate\Support\ServiceProvider;
 use Moistcake\DbBackup\Commands\DatabaseBackup;
 
+/**
+ * Service provider for the Laravel DbBackup package.
+ */
 class DbBackupServiceProvider extends ServiceProvider
 {
+    /**
+     * Bootstrap the application services.
+     */
     public function boot()
     {
         $this->publishes([
@@ -20,6 +26,9 @@ class DbBackupServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Register the application services.
+     */
     public function register()
     {
         $this->mergeConfigFrom(

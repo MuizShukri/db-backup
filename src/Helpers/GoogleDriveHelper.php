@@ -3,11 +3,19 @@
 namespace Moistcake\DbBackup\Helpers;
 
 use Google\Client;
+use Google\Http\MediaFileUpload;
 use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Utils;
 
 class GoogleDriveHelper
 {
+    /**
+     * Create and configure a Google API client.
+     * 
+     * @return Client
+     */
     protected static function client()
     {
         $client = new Client();
@@ -19,6 +27,10 @@ class GoogleDriveHelper
         return $client;
     }
 
+    /**
+     * Check the connection to Google Drive.
+     * Outputs the connected user's display name and email if successful.
+     */
     public static function checkGoogleDriveConnection()
     {
         $client = self::client();
@@ -32,6 +44,15 @@ class GoogleDriveHelper
         }
     }
 
+    /**
+     * Upload a file to Google Drive.
+     * 
+     * @param string $filePath The path to the file to upload.
+     * @param string $fileName The name of the file in Google Drive.
+     * @param string|null $folderId The ID of the folder to upload the file into.
+     * 
+     * @return string The URL to view the uploaded file.
+     */
     public static function uploadFile($filePath, $fileName, $folderId = null)
     {
         $client = self::client();

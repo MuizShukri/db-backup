@@ -1,5 +1,12 @@
 <?php 
 
+/**
+ * Configuration for the database backup process.
+ * 
+ * Specify database connection, tables to exclude, extra options for dumping,
+ * file naming conventions, backup directory, Google Drive integration,
+ * and logging details.
+ */
 return [
     'database' => [
         'connection'    => env('DB_BACKUP_CONNECTION', 'mysql'),
