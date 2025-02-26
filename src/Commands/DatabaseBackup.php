@@ -25,7 +25,9 @@ class DatabaseBackup extends Command
             mkdir($backupDir, 0777, true);
         }
         
-        Log::channel(config('DbBackup.logging.channel'))->info("---------------------------------------------------");
+        $databaseName = config('database.connections.' . config('DbBackup.database.connection') . '.database');
+        
+        Log::channel(config('DbBackup.logging.channel'))->info("Database Name: {$databaseName}");
         Log::channel(config('DbBackup.logging.channel'))->info('Starting Database Backup...');
 
         try {
@@ -43,6 +45,7 @@ class DatabaseBackup extends Command
 
             Log::channel(config('DbBackup.logging.channel'))->info("{$fileUrl}");
             Log::channel(config('DbBackup.logging.channel'))->info("Database upload completed in {$uploadTime} seconds.");
+            Log::channel(config('DbBackup.logging.channel'))->info("----------------------------------------------------------------------");
 
             // remove old backups
             $this->removeOldBackups($backupDir);
@@ -81,7 +84,6 @@ class DatabaseBackup extends Command
 
         $backupTime = number_format($backupEndTime - $backupStartTime);
         Log::channel(config('DbBackup.logging.channel'))->info("Database backup completed in {$backupTime} seconds.");
-        Log::channel(config('DbBackup.logging.channel'))->info("---------------------------------------------------");
     }
 
     /**
