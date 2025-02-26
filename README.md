@@ -27,7 +27,7 @@ composer require moistcake/db-backup
 1. **Publish the configuration file:**
 
 ```bash
-php artisan vendor:publish --provider="Moistcake\\DbBackup\\DbBackupServiceProvider"
+php artisan vendor:publish --provider="Moistcake\\DbBackup\\DbBackupServiceProvider" --tag="dbbackup-config"
 ```
 
 2. **Set the following environment variables in your `.env` file:**
