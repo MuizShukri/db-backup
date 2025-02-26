@@ -7,21 +7,24 @@ use Moistcake\DbBackup\Commands\DatabaseBackup;
 
 class DbBackupServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register()
-    {
-        $this->commands([
-            DatabaseBackup::class, // Register the command
-        ]);
-    }
-
-    /**
-     * Bootstrap any application services.
-     */
     public function boot()
     {
-        // You can publish config or do additional setup here if needed
+        $this->publishes([
+            __DIR__ . '/config/db-backup.php' => config_path('db-backup.php'),
+        ], 'config');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                DatabaseBackup::class,
+            ]);
+        }
+    }
+
+    public function register()
+    {
+        $this->mergeConfigFrom(
+            __DIR__ . '/config/db-backup.php',
+            'db-backup'
+        );
     }
 }

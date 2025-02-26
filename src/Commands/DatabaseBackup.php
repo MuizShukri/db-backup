@@ -14,42 +14,45 @@ class DatabaseBackup extends Command
 
     public function handle()
     {
-        $backupDir = storage_path('app/db_backup');
-        $fileName = 'db_backup_' . Carbon::now()->format('Y_m_d_His') . '.sql';
+        $backupDir = config('db-backup.backup_directory');
+        $fileName = config('db-backup.file_prefix') . "_db_backup_" . Carbon::now()->format('Y_m_d_His') . '.sql';
         $filePath = $backupDir . DIRECTORY_SEPARATOR . $fileName;
-        $folderId = env('GOOGLE_DRIVE_FOLDER_ID');
+        $folderId = config('db-backup.google_drive_folder_id');
 
-        if (!file_exists($backupDir)) {
-            mkdir($backupDir, 0777, true);
-        }
+        if (!file_exists($backupDir)) mkdir($backupDir, 0777, true);
 
-        $this->info('Starting database backup...');
+        $this->info("Starting Database Backup...");
 
         try {
+            $dbConfig = config("database.connections." . config('db-backup.database.connection'));
+
             MySql::create()
-                ->setDbName(config('database.connections.mysql.database'))
-                ->setUserName(config('database.connections.mysql.username'))
-                ->setPassword(config('database.connections.mysql.password'))
-                ->setHost(config('database.connections.mysql.host'))
-                ->addExtraOption('--single-transaction')
-                ->addExtraOption('--quick')
-                ->addExtraOption('--routines')
-                ->addExtraOption('--events')
-                ->addExtraOption('--skip-lock-tables')
+                ->setDbName($dbConfig['database'])
+                ->setUserName($dbConfig['username'])
+                ->setPassword($dbConfig['password'])
+                ->setHost($dbConfig['host'])
+                ->addExtraOption(implode(' ', config('db-backup.database.extra_options')))
+                ->excludeTables(config('db-backup.database.exclude_tables'))
                 ->dumpToFile($filePath);
 
-            $this->info("Database backup successful: {$fileName}");
-
-            $this->info("Checking file existence at: {$filePath}");
-            
-            if (!file_exists($filePath)) {
-                $this->error("Backup file not found at {$filePath}");
-            }
+            $this->info("Database backup completed.");
+            $this->info("Uploading Database to Google Drive...");
 
             $fileUrl = GoogleDriveHelper::uploadFile($filePath, $fileName, $folderId);
-            $this->info("Data stored at Google Drive: {$fileUrl}");
+            $this->info("Uploaded: {$fileUrl}");
+
+            $this->cleanup($backupDir);
         } catch (\Exception $e) {
-            $this->error("Database backup failed: {$e->getMessage()}");
+            $this->error("Backup failed: {$e->getMessage()}");
+        }
+    }
+
+    private function cleanup($backupDir)
+    {
+        $files = array_diff(scandir($backupDir), ['.', '..']);
+        if (count($files) > config('db-backup.keep_backup_count')) {
+            asort($files);
+            unlink($backupDir . DIRECTORY_SEPARATOR . array_shift($files));
         }
     }
 }
