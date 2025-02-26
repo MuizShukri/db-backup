@@ -11,10 +11,6 @@ return [
     'database' => [
         'connection'    => env('DB_BACKUP_CONNECTION', 'mysql'),
         'exclude_tables' => [
-            'activity_log',
-            'havestor_tasks',
-            'letter_task',
-            'tasks',
         ],
         'extra_options' => [
             '--single-transaction',
