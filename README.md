@@ -24,7 +24,7 @@ composer require moistcake/db-backup
 After installation, publish the configuration file:
 
 ```bash
-php artisan vendor:publish --provider="moistcake\db-backup\src\DbBackupServiceProvider"
+php artisan vendor:publish --provider="Moistcake\\DbBackup\\DbBackupServiceProvider" --tag="config"
 ```
 
 This command will create a db-backup.php configuration file in your config directory.
