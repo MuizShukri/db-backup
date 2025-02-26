@@ -11,7 +11,7 @@ class DbBackupServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'DbBackup.php' => config_path('DbBackup.php'),
-        ], 'config');
+        ], 'dbbackup-config');
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -24,7 +24,7 @@ class DbBackupServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(
             __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'DbBackup.php',
-            'db-backup'
+            'DbBackup'
         );
 
         $this->app->make('config')->set('logging.channels.dbbackup', [
