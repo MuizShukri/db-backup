@@ -10,7 +10,7 @@ class DbBackupServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/config/db-backup.php' => config_path('db-backup.php'),
+            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'db-backup.php' => config_path('db-backup.php'),
         ], 'config');
 
         if ($this->app->runningInConsole()) {
@@ -23,7 +23,7 @@ class DbBackupServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/config/db-backup.php',
+            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'db-backup.php',
             'db-backup'
         );
 
