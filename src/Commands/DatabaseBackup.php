@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Moistcake\DbBackup\Commands;
 
 use Illuminate\Console\Command;
 use Spatie\DbDumper\Databases\MySql;

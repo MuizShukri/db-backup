@@ -47,7 +47,7 @@ GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id
 Run the backup command:
 
 ```bash
-php artisan db:backup
+php artisan moistcake:backup
 ```
 
 The command will:
