@@ -26,5 +26,11 @@ class DbBackupServiceProvider extends ServiceProvider
             __DIR__ . '/config/db-backup.php',
             'db-backup'
         );
+
+        $this->app->make('config')->set('logging.channels.dbbackup', [
+            'driver' => 'single',
+            'path'   => config('db-backup.logging.path'),
+            'level'  => config('db-backup.logging.level', 'info'),
+        ]);
     }
 }

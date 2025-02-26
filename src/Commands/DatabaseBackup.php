@@ -1,11 +1,12 @@
 <?php
 
-namespace Moistcake\DbBackup\Commands;
+namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Spatie\DbDumper\Databases\MySql;
 use Carbon\Carbon;
-use Moistcake\DbBackup\Helpers\GoogleDriveHelper;
+use App\Helpers\GoogleDriveHelper;
+use Illuminate\Support\Facades\Log;
 
 class DatabaseBackup extends Command
 {
@@ -19,12 +20,20 @@ class DatabaseBackup extends Command
         $filePath = $backupDir . DIRECTORY_SEPARATOR . $fileName;
         $folderId = config('db-backup.google_drive_folder_id');
 
-        if (!file_exists($backupDir)) mkdir($backupDir, 0777, true);
-
-        $this->info("Starting Database Backup...");
+        // create directory if not exist
+        if (!file_exists($backupDir)) {
+            mkdir($backupDir, 0777, true);
+        }
+        
+        Log::channel(config('db-backup.logging.channel'))->info("---------------------------------------------------");
+        Log::channel(config('db-backup.logging.channel'))->info('Starting Database Backup...');
 
         try {
-            $dbConfig = config("database.connections." . config('db-backup.database.connection'));
+            // backup database
+            $backupStartTime = microtime(true);
+
+            $connection = config('db-backup.database.connection');
+            $dbConfig = config("database.connections.{$connection}");
 
             MySql::create()
                 ->setDbName($dbConfig['database'])
@@ -35,24 +44,36 @@ class DatabaseBackup extends Command
                 ->excludeTables(config('db-backup.database.exclude_tables'))
                 ->dumpToFile($filePath);
 
-            $this->info("Database backup completed.");
-            $this->info("Uploading Database to Google Drive...");
+            $backupEndTime = microtime(true);
 
+            $backupTime = number_format($backupEndTime - $backupStartTime);
+            Log::channel(config('db-backup.logging.channel'))->info("Database backup completed in {$backupTime} seconds.");
+            Log::channel(config('db-backup.logging.channel'))->info("---------------------------------------------------");
+
+            // upload file to google drive
+            Log::channel(config('db-backup.logging.channel'))->info('Uploading Database to Google Drive...');
+
+            $uploadStartTime = microtime(true);
             $fileUrl = GoogleDriveHelper::uploadFile($filePath, $fileName, $folderId);
-            $this->info("Uploaded: {$fileUrl}");
+            $uploadEndTime = microtime(true);
 
-            $this->cleanup($backupDir);
+            $uploadTime = number_format($uploadEndTime - $uploadStartTime);
+            Log::channel(config('db-backup.logging.channel'))->info("{$fileUrl}");
+            Log::channel(config('db-backup.logging.channel'))->info("Database uploaded in {$uploadTime} seconds");
+            Log::channel(config('db-backup.logging.channel'))->info("---------------------------------------------------");
+
+            // remove old backups
+            if (is_dir($backupDir)) {
+                $files = array_diff(scandir($backupDir), ['.', '..']);
+                $fileCount = count($files);
+                if ($fileCount > config('db-backup.keep_backup_count')) {
+                    asort($files);
+                    unlink($backupDir . DIRECTORY_SEPARATOR . array_shift($files));
+                }
+            }
+
         } catch (\Exception $e) {
-            $this->error("Backup failed: {$e->getMessage()}");
-        }
-    }
-
-    private function cleanup($backupDir)
-    {
-        $files = array_diff(scandir($backupDir), ['.', '..']);
-        if (count($files) > config('db-backup.keep_backup_count')) {
-            asort($files);
-            unlink($backupDir . DIRECTORY_SEPARATOR . array_shift($files));
+            Log::channel(config('db-backup.logging.channel'))->error("Database backup failed: {$e->getMessage()}");
         }
     }
 }

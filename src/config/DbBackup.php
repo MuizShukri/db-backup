@@ -22,4 +22,9 @@ return [
     'keep_backup_count'        => 1,
     'google_drive_credentials' => env('GOOGLE_DRIVE_CREDENTIALS'),
     'google_drive_folder_id'   => env('GOOGLE_DRIVE_FOLDER_ID'),
+    'logging' => [
+        'channel' => 'dbbackup', 
+        'level'   => 'info',
+        'path'    => storage_path('logs/dbbackup.log'),
+    ],
 ];
