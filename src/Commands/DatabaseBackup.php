@@ -34,9 +34,15 @@ class DatabaseBackup extends Command
 
             // upload file to google drive
             Log::channel(config('DbBackup.logging.channel'))->info('Uploading Database to Google Drive...');
+
+            $uploadStartTime = microtime(true);
             $fileUrl = GoogleDriveHelper::uploadFile($filePath, $fileName, $folderId);
+            $uploadEndTime = microtime(true);
+
+            $uploadTime = number_format($uploadEndTime - $uploadStartTime);
 
             Log::channel(config('DbBackup.logging.channel'))->info("{$fileUrl}");
+            Log::channel(config('DbBackup.logging.channel'))->info("Database upload completed in {$uploadTime} seconds.");
 
             // remove old backups
             $this->removeOldBackups($backupDir);
