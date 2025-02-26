@@ -5,7 +5,7 @@ namespace Moistcake\DbBackup\Commands;
 use Illuminate\Console\Command;
 use Spatie\DbDumper\Databases\MySql;
 use Carbon\Carbon;
-use App\Helpers\GoogleDriveHelper;
+use Moistcake\DbBackup\Helpers\GoogleDriveHelper;
 use Illuminate\Support\Facades\Log;
 
 class DatabaseBackup extends Command
