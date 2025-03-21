@@ -81,6 +81,8 @@ class GoogleDriveHelper
         
         $media->setFileSize($stream->getSize());
 
+        ini_set('memory_limit','2048M');
+
         $uploadedFile = $service->files->create($file, [
             'data' => $stream,
             'mimeType' => mime_content_type($filePath),
