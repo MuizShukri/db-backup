@@ -18,7 +18,7 @@ class DbBackupServiceProvider extends ServiceProvider
         // Publish the configuration file for the package.
         // This allows the user to configure the package.
         $this->publishes([
-            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'DbBackup.php' => config_path('DbBackup.php'),
+            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'DbBackup.php' => config_path('dbbackup.php'),
         ], 'dbbackup-config');
 
         // If the application is running in the console, register the command.
