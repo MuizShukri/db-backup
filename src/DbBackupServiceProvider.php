@@ -45,8 +45,8 @@ class DbBackupServiceProvider extends ServiceProvider
         // This allows the user to configure the logging for the package.
         $this->app->make('config')->set('logging.channels.dbbackup', [
             'driver' => 'single',
-            'path'   => config('DbBackup.logging.path'),
-            'level'  => config('DbBackup.logging.level', 'info'),
+            'path'   => config('dbbackup.logging.path'),
+            'level'  => config('dbbackup.logging.level', 'info'),
         ]);
     }
 }

@@ -15,27 +15,27 @@ class DatabaseBackup extends Command
 
     public function handle()
     {
-        $backupDir = config('DbBackup.backup_directory');
-        $fileName = config('DbBackup.file_prefix') . "_db_backup_" . Carbon::now()->format('Y_m_d_His') . '.sql';
+        $backupDir = config('dbbackup.backup_directory');
+        $fileName = config('dbbackup.file_prefix') . "_db_backup_" . Carbon::now()->format('Y_m_d_His') . '.sql';
         $filePath = $backupDir . DIRECTORY_SEPARATOR . $fileName;
-        $folderId = config('DbBackup.google_drive_folder_id');
+        $folderId = config('dbbackup.google_drive_folder_id');
 
         // create directory if not exist
         if (!file_exists($backupDir)) {
             mkdir($backupDir, 0777, true);
         }
 
-        $databaseName = config('database.connections.' . config('DbBackup.database.connection') . '.database');
+        $databaseName = config('database.connections.' . config('dbbackup.database.connection') . '.database');
 
-        Log::channel(config('DbBackup.logging.channel'))->info("Database Name: {$databaseName}");
-        Log::channel(config('DbBackup.logging.channel'))->info('Starting Database Backup...');
+        Log::channel(config('dbbackup.logging.channel'))->info("Database Name: {$databaseName}");
+        Log::channel(config('dbbackup.logging.channel'))->info('Starting Database Backup...');
 
         try {
             // backup database
             $this->backupDatabase($backupDir, $fileName, $filePath);
 
             // upload file to google drive
-            Log::channel(config('DbBackup.logging.channel'))->info('Uploading Database to Google Drive...');
+            Log::channel(config('dbbackup.logging.channel'))->info('Uploading Database to Google Drive...');
 
             $uploadStartTime = microtime(true);
             $fileUrl = GoogleDriveHelper::uploadFile($filePath, $fileName, $folderId);
@@ -43,15 +43,15 @@ class DatabaseBackup extends Command
 
             $uploadTime = number_format($uploadEndTime - $uploadStartTime);
 
-            Log::channel(config('DbBackup.logging.channel'))->info("{$fileUrl}");
-            Log::channel(config('DbBackup.logging.channel'))->info("Database upload completed in {$uploadTime} seconds.");
-            Log::channel(config('DbBackup.logging.channel'))->info("----------------------------------------------------------------------");
+            Log::channel(config('dbbackup.logging.channel'))->info("{$fileUrl}");
+            Log::channel(config('dbbackup.logging.channel'))->info("Database upload completed in {$uploadTime} seconds.");
+            Log::channel(config('dbbackup.logging.channel'))->info("----------------------------------------------------------------------");
 
             // remove old backups
             $this->removeOldBackups($backupDir);
 
         } catch (\Exception $e) {
-            Log::channel(config('DbBackup.logging.channel'))->error("Database backup failed: {$e->getMessage()}");
+            Log::channel(config('dbbackup.logging.channel'))->error("Database backup failed: {$e->getMessage()}");
         }
     }
 
@@ -66,7 +66,7 @@ class DatabaseBackup extends Command
      */
     private function backupDatabase($backupDir, $fileName, $filePath)
     {
-        $connection = config('DbBackup.database.connection');
+        $connection = config('dbbackup.database.connection');
         $dbConfig = config("database.connections.{$connection}");
 
         // start timer
@@ -78,8 +78,8 @@ class DatabaseBackup extends Command
             ->setUserName($dbConfig['username'])
             ->setPassword($dbConfig['password'])
             ->setHost($dbConfig['host'])
-            ->addExtraOption(implode(' ', config('DbBackup.database.extra_options')))
-            ->excludeTables(config('DbBackup.database.exclude_tables'))
+            ->addExtraOption(implode(' ', config('dbbackup.database.extra_options')))
+            ->excludeTables(config('dbbackup.database.exclude_tables'))
             ->dumpToFile($filePath);
 
         // end timer
@@ -87,7 +87,7 @@ class DatabaseBackup extends Command
 
         // calculate time taken
         $backupTime = number_format($backupEndTime - $backupStartTime);
-        Log::channel(config('DbBackup.logging.channel'))->info("Database backup completed in {$backupTime} seconds.");
+        Log::channel(config('dbbackup.logging.channel'))->info("Database backup completed in {$backupTime} seconds.");
     }
 
     /**
@@ -113,7 +113,7 @@ class DatabaseBackup extends Command
             });
 
             // Delete extra files if more than allowed
-            $keepCount = config('DbBackup.keep_backup_count');
+            $keepCount = config('dbbackup.keep_backup_count');
             if (count($filePaths) > $keepCount) {
                 $filesToDelete = array_slice($filePaths, 0, count($filePaths) - $keepCount);
                 foreach ($filesToDelete as $file) {

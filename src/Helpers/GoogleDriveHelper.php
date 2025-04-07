@@ -78,7 +78,7 @@ class GoogleDriveHelper
         $mimeType = mime_content_type($filePath);
         $fileSize = filesize($filePath);
         // Set the chunk size in bytes
-        $chunkSizeBytes = config('DbBackup.google_drive_chunk_size');
+        $chunkSizeBytes = config('dbbackup.google_drive_chunk_size');
     
         // Set the client to defer the request until the file is fully uploaded
         $client->setDefer(true);
