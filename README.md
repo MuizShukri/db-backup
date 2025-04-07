@@ -27,7 +27,7 @@ composer require moistcake/db-backup
 1. **Publish the configuration file:**
 
 ```bash
-php artisan vendor:publish --provider="Moistcake\\DbBackup\\DbBackupServiceProvider" --tag="dbbackup-config"
+php artisan vendor:publish --tag=dbbackup-config
 ```
 
 2. **Set the following environment variables in your `.env` file:**
@@ -47,7 +47,7 @@ GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id
 Run the backup command:
 
 ```bash
-php artisan moistcake:backup
+php artisan moistcake:db-backup
 ```
 
 The command will:
@@ -68,21 +68,14 @@ The package uses Laravel's logging system to provide detailed information about:
 **Example log entries:**
 
 ```
-[2024-02-26 12:00:00] local.INFO: Database backup started.
-[2024-02-26 12:01:00] local.INFO: Database backup completed in 60 seconds.
-[2024-02-26 12:01:10] local.INFO: File uploaded to Google Drive: https://drive.google.com/file/d/abc123/view
-```
-
----
-
-## ⚡ Google Drive Connection Check
-
-To test the Google Drive connection:
-
-```php
-use Moistcake\\DbBackup\\Helpers\\GoogleDriveHelper;
-
-GoogleDriveHelper::checkGoogleDriveConnection();
+[2025-04-07 16:02:43] local.INFO: ----------------------------------------------------------------------  
+[2025-04-07 16:02:47] local.INFO: Database Name: database_name  
+[2025-04-07 16:02:47] local.INFO: Starting Database Backup...  
+[2025-04-07 16:02:48] local.INFO: Database backup completed in 6 seconds.  
+[2025-04-07 16:02:48] local.INFO: Uploading Database to Google Drive...  
+[2025-04-07 16:02:59] local.INFO: https://drive.google.com/file/d/abc123/view  
+[2025-04-07 16:02:59] local.INFO: Database upload completed in 360 seconds.  
+[2025-04-07 16:02:59] local.INFO: ----------------------------------------------------------------------  
 ```
 
 ---
@@ -94,10 +87,14 @@ GoogleDriveHelper::checkGoogleDriveConnection();
 ```php
 return [
     'database' => [
-        'connection'    => env('DB_BACKUP_CONNECTION', 'mysql'),
+        // Specifies the database connection to use for backups
+        'connection' => env('DB_BACKUP_CONNECTION', 'mysql'),
+
+        // Tables to exclude from the backup to reduce size and time
         'exclude_tables' => [
-            // what table to exclude
         ],
+
+        // Extra options to pass to the database dump command
         'extra_options' => [
             '--single-transaction',
             '--quick',
@@ -106,11 +103,35 @@ return [
             '--skip-lock-tables',
         ],
     ],
-    'file_prefix'              => strtolower(env('APP_NAME')),
-    'backup_directory'         => storage_path('app'. DIRECTORY_SEPARATOR .'db_backups'),
-    'keep_backup_count'        => 1,
+
+    // Prefix for naming backup files
+    'file_prefix' => strtolower(env('APP_NAME')),
+
+    // Directory where backups will be stored locally
+    'backup_directory' => storage_path('app' . DIRECTORY_SEPARATOR . 'db_backups'),
+
+    // Number of backup files to keep before deleting the oldest ones
+    'keep_backup_count' => 2,
+
+    // Credentials for Google Drive API for uploading backups
     'google_drive_credentials' => env('GOOGLE_DRIVE_CREDENTIALS'),
-    'google_drive_folder_id'   => env('GOOGLE_DRIVE_FOLDER_ID'),
+
+    // Folder ID in Google Drive where backups will be stored
+    'google_drive_folder_id' => env('GOOGLE_DRIVE_FOLDER_ID'),
+
+    // Size of chunks to use when uploading to Google Drive
+    'google_drive_chunk_size' => 262144, // 256KB
+
+    'logging' => [
+        // Logging channel to use for backup logs
+        'channel' => 'dbbackup', 
+
+        // Logging level for backup operations
+        'level' => 'info',
+
+        // Path to the log file for backup processes
+        'path' => storage_path('logs/dbbackup.log'),
+    ],
 ];
 ```
 
