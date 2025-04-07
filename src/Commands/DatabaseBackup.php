@@ -24,9 +24,9 @@ class DatabaseBackup extends Command
         if (!file_exists($backupDir)) {
             mkdir($backupDir, 0777, true);
         }
-        
+
         $databaseName = config('database.connections.' . config('DbBackup.database.connection') . '.database');
-        
+
         Log::channel(config('DbBackup.logging.channel'))->info("Database Name: {$databaseName}");
         Log::channel(config('DbBackup.logging.channel'))->info('Starting Database Backup...');
 
@@ -57,11 +57,11 @@ class DatabaseBackup extends Command
 
     /**
      * Backup database to the given file path.
-     * 
+     *
      * @param string $backupDir The directory to store the backup file.
      * @param string $fileName The name of the backup file.
      * @param string $filePath The path of the backup file.
-     * 
+     *
      * @return void
      */
     private function backupDatabase($backupDir, $fileName, $filePath)
@@ -69,8 +69,10 @@ class DatabaseBackup extends Command
         $connection = config('DbBackup.database.connection');
         $dbConfig = config("database.connections.{$connection}");
 
+        // start timer
         $backupStartTime = microtime(true);
 
+        // backup database
         MySql::create()
             ->setDbName($dbConfig['database'])
             ->setUserName($dbConfig['username'])
@@ -80,27 +82,43 @@ class DatabaseBackup extends Command
             ->excludeTables(config('DbBackup.database.exclude_tables'))
             ->dumpToFile($filePath);
 
+        // end timer
         $backupEndTime = microtime(true);
 
+        // calculate time taken
         $backupTime = number_format($backupEndTime - $backupStartTime);
         Log::channel(config('DbBackup.logging.channel'))->info("Database backup completed in {$backupTime} seconds.");
     }
 
     /**
      * Remove old backups until the number of backups is equal to the given count.
-     * 
+     *
      * @param string $backupDir The directory of the backups.
-     * 
+     *
      * @return void
      */
     private function removeOldBackups($backupDir)
     {
         if (is_dir($backupDir)) {
             $files = array_diff(scandir($backupDir), ['.', '..']);
-            $fileCount = count($files);
-            if ($fileCount > config('DbBackup.keep_backup_count')) {
-                asort($files);
-                unlink($backupDir . DIRECTORY_SEPARATOR . array_shift($files));
+
+            // Full paths with filemtime for sorting
+            $filePaths = array_map(function ($file) use ($backupDir) {
+                return $backupDir . DIRECTORY_SEPARATOR . $file;
+            }, $files);
+
+            // Sort by file modified time ascending (oldest first)
+            usort($filePaths, function ($a, $b) {
+                return filemtime($a) <=> filemtime($b);
+            });
+
+            // Delete extra files if more than allowed
+            $keepCount = config('DbBackup.keep_backup_count');
+            if (count($filePaths) > $keepCount) {
+                $filesToDelete = array_slice($filePaths, 0, count($filePaths) - $keepCount);
+                foreach ($filesToDelete as $file) {
+                    unlink($file);
+                }
             }
         }
     }
